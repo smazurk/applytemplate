@@ -1,6 +1,6 @@
 var renderContent = function ($contentElement, context) {
     //$contentElement is jquery content element for my red control and context contains entity type and entity id
-    $contentElement.append('<button id="templateAddNewButton">Add New Template</button><div id="templateAddNewDiv" style="display: none;">WooWoo!</div><div id="templateApplyTemplateDiv"></div>');
+    $contentElement.append('<button id="templateAddNewButton">Add New Template</button><div id="templateAddNewDiv" style="display: none;"><input type = "text" id = "newTemplateName"><BR></div><div id="templateApplyTemplateDiv"><div id="templateTableDiv"></div></div>');
 };
 
 //Append my controls to user story view
@@ -12,28 +12,31 @@ tau.mashups.addDependency('tp/userStory/view')
 
 
 
-        
-function getProjectID(handleData, userstoryID) {
 /*
 Get the project Id for the userstory we are looking at.                                                
 */                                  
-console.log(appHostAndPath);
-                    $.ajax({
-                        type: 'GET',
-                        url: appHostAndPath + '/api/v1/UserStories?where=Id%20eq%20' + userstoryID + '&format=json',
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        success: function(resp) {
-                           handleData(resp); 
-            		}
-			   
-                    });
-	}
         
-function loadTemplates(handleData, userstoryID) {
+function getProjectID(handleData, userstoryID) {
+
+console.log(appHostAndPath);
+	$.ajax({
+		type: 'GET',
+                url: appHostAndPath + '/api/v1/UserStories?where=Id%20eq%20' + userstoryID + '&format=json',
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(resp) {
+                     handleData(resp); 
+            	}
+			   
+        });
+}
+
+        
 /*
 Load the templates                                            
 */                                  
+        
+function loadTemplates(handleData, userstoryID) {
 console.log(appHostAndPath);
                     $.ajax({
                         type: 'GET',
@@ -140,74 +143,51 @@ function getTemplate(id, name, template){
                                             'Name'    : 'aTestCase2',
           				    'Steps'   : 'Steps',
               				    'Success' : 'Sucess'
-                                         });                         
+                                         });
+                    
+                    
   applyTemplate(id, name, templates.template["atemplate"].Items);
   
 }
 
 
 
-                             
-                         
+
+function removeTemplate(templatename){
+
+                                      
+                                      
+  console.log('remove template' + templatename);
+	
+  	$.ajax({
+                    type: 'DELETE',
+                    url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + templatename,
+                    contentType: 'application/json; charset=utf8',
+                    success: function(){console.log("yay!");
+                                        rebuildTemplateTable();
+                                        }, 
+       		    error: function(){console.log("boo!");}
+                });
+  
+}
 
 
-var startApplyTemplate = function(eventdata) {
-                                              
-                                              
-                                              
-    
-          var sampletemplate = {'template' : {}};
-  	sampletemplate.template["atemplate"] = {
-                                        'Items'         : []
-				       };
+function addTemplateTable($element){
+	$element.find("#templateTableDiv").html('');
+	$element.find("#templateTableDiv").append(buildTemplateTable());
+}
+
+
+function rebuildTemplateTable(){
+	$("#templateTableDiv").html('');
+	$("#templateTableDiv").append(buildTemplateTable()); 
+}
+
+function buildTemplateTable(){
+        
+	console.log($element.length);
+	//$("#templateTableDiv").html('');
     	
-    	sampletemplate.template["atemplate"].Items.push({
-                                            'Type'    : 'Tasks',
-                                            'Name'    : 'aTask1',
-          				    'Description' : 'the first task'
-              				    
-                                         });
-                    
-                    
-    	sampletemplate.template["atemplate"].Items.push({
-                                            'Type'    : 'Tasks',
-                                            'Name'    : 'aTask2',
-          				    'Description' : 'the second task'
-              				    
-                                         });
-    	sampletemplate.template["atemplate"].Items.push({
-                                            'Type'    : 'Tasks',
-                                            'Name'    : 'aTask3',
-          				    'Description' : 'the third task'
-              				   
-                                         });
-                    
-                    
-                    
-    	sampletemplate.template["atemplate"].Items.push({
-                                            'Type'    : 'TestCases',
-                                            'Name'    : 'aTestCase1',
-          				    'Steps'   : 'Steps',
-              				    'Success' : 'Sucess'
-                                         });            
-     	sampletemplate.template["atemplate"].Items.push({
-                                            'Type'    : 'TestCases',
-                                            'Name'    : 'aTestCase2',
-          				    'Steps'   : 'Steps',
-              				    'Success' : 'Sucess'
-                                         });                           
-            
-                                                   
-	var id = eventdata.data.context.entity.id;
-                   
-            
-
-   
-        console.log(eventdata);    
-	
-	$element = eventdata.element;
-	
-    	//$element.find("#templateAddNewDiv").append('<ul id="menu" style="display:none"><li>Menu1</li><li>Menu2</li></ul>';
     
         var table = $('<table class="" width= 500></table>');
         table.append($('<tr><th colspan = 2; width= 400>Template</th></tr>'));
@@ -221,11 +201,15 @@ var startApplyTemplate = function(eventdata) {
                                         console.log(data);                 
                                         $.each(data.items, function(k,item) {
                 				var tr = $('<tr class="hoverHi"></tr>');
-				                tr.append($('<td class="more"><a href = "#">Apply</a></td>').click(function() {
-               
-                				getTemplate(id, item.key);
-          
-               				}));
+				                tr.append($('<td class="more" width = 75><a href = "#">Apply</a></td>').click(function() {
+          	      					getTemplate(id, item.key);
+                                                }));
+                          			tr.append($('<td class="more" width = 75><a href = "#">Delete</a></td>').click(function() {
+          	      					removeTemplate(item.key);
+                                                }));
+                            			tr.append($('<td class="more" width = 75><a href = "#">Modify</a></td>').click(function() {
+          	      					modifyTemplate(item.key);
+                                                }));
               				tr.append("<td>" + item.key + "</td>");
              			 	table.append(tr);
 				        });    
@@ -233,35 +217,73 @@ var startApplyTemplate = function(eventdata) {
 				}
             });
               
-        /* 
-        $.each(templates.template, function(k,template) {
-        	$element.find("#templateApplyTemplateDiv").append(k + '<BR>');
-               
-               //innerTable.append('<tr><td><a href = "/RestUI/TpView.aspx?#userstory/{0}">{0}</a></td><td>{1}</td><td>{2}</td></tr>'.f(item.Id, item.Name, item.Bugs));
-        });
-        */
-		$element.find("#templateApplyTemplateDiv").append(table);
-		$element.find('#templateAddNewButton').click(function( event ){ 
-	       	
-                $element.find("#templateAddNewDiv").show();
-        	
-              	samplejson = JSON.stringify(sampletemplate.template["atemplate"]);
-              
+     
+		  return table;                            
+                                       
+}
+                             
+                         
+function modifyTemplate(templatename){
+
+                                      
+                                      
+  console.log('modify template ' + templatename);
+
+}
+
+
+
+
+var startApplyTemplate = function(eventdata) {
+                                              
+                                              
+                                              
+    
+          
+            
+                                                   
+	var id = eventdata.data.context.entity.id;
+                   
+       
+   
+        console.log(eventdata);    
+	
+	$element = eventdata.element;
+	
         
-        		$.ajax({
+
+		addTemplateTable($element);  
+          
+		$element.find('#templateAddNewButton').click(function( event ){ 
+		       	$element.find('#templateAddNewButton').hide();
+        	        $element.find("#templateAddNewDiv").show();
+	                var myitem;
+                        myitem = $('<button id="doadd">Add!</button>').click(function(){
+			
+                        
+                $.ajax({
                     type: 'POST',
                     async: false,
-                    url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/test',
+                    url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + $('#newTemplateName').val(),
                     data: JSON.stringify({
                         'scope'     : 'Private',
                         'publicData': null,
-                        'userData'  : samplejson
+                        'userData'  : ''
                     }),
                     contentType: 'application/json; charset=utf8',
-                    success: function(){console.log("yay!");}, 
+                    success: function(){
+                                        console.log("yay!");
+                                        rebuildTemplateTable();
+                      			
+                                        }, 
        		    error: function(){console.log("boo!");}
                 });
-        
+			                                                                     
+			return false;
+			});
+                
+		$element.find("#templateAddNewDiv").append(myitem);
+        	
             		return false;
         	});
 	
