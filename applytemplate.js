@@ -1,5 +1,5 @@
 
-*
+/*
 Setup the placeholders we will need.
 */
 var renderContent = function ($contentElement, context) {
