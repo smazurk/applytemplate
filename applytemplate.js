@@ -1,3 +1,5 @@
+//probably should find a better way to do this...  
+var _userstoryid;
 
 /*
 Setup the placeholders we will need.
@@ -11,19 +13,32 @@ var renderContent = function ($contentElement, context) {
         html += '<button id="templateAddNewButton">Add New Template</button></div>';
 	html += '<div id="templatesDiv"><div id="templateTableDiv"></div></div>';
 	html += '<div id="templateModifyDiv" style="display: none;">';
+        html += '<div id="templateModifyTitleDiv"></div>';
+        
 	html += '<div id="templateModifyTableDiv">';
+        html += '<div id="templateAddButtons">';
         html += '<button id = "showAddTask">Add Task</button>';
+        html += '<button id = "showAddTestCase">Add TestCase</button>';
+        html += '</div>';
         
         html += '<div id="templateAddTask" style="display: none;">Add task<br>';
-        html += '<input type = "text" id = "newTaskName"><BR>';
-        html += '<input type = "text" id = "newTaskDescription"><BR>';
+        html += 'Name: <input type = "text" id = "newTaskName"><BR>';
+        html += 'Description: <input type = "text" id = "newTaskDescription"><BR>';
         html += '<button id="doSaveTask">Save</button>';
+        html += '<button id="doCancelTask">Cancel</button>';
         html += '</div>';
         
         
-        html += '<div id="templateAddTestCase" style="display: none;">Add test case???</div>';
+        html += '<div id="templateAddTestCase" style="display: none;">';
+        html += 'Name: <input type = "text" id = "newTestCaseName"><BR>';
+        html += 'Steps: <input type = "text" id = "newTestCaseSteps"><BR>';
+        html += 'Success: <input type = "text" id = "newTestCaseSuccess"><BR>';
+        html += '<button id="doSaveTestCase">Save</button>';
+        html += '<button id="doCancelTestCase">Cancel</button>';
+        html += '</div>';
         
-        html += '<div id "templateModifyContents">';
+        
+        html += '<div id="templateModifyContents">';
         html += '</div>';
         
 	html += '</div>';
@@ -46,12 +61,13 @@ tau.mashups.addDependency('tp/userStory/view')
 Get the project Id for the userstory we are looking at.                                                
 */                                  
         
-function getProjectID(handleData, userstoryID) {
+function getProjectID(handleData) {
 
 console.log(appHostAndPath);
+console.log('us id :' + _userstoryid);
 	$.ajax({
 		type: 'GET',
-                url: appHostAndPath + '/api/v1/UserStories?where=Id%20eq%20' + userstoryID + '&format=json',
+                url: appHostAndPath + '/api/v1/UserStories?where=Id%20eq%20' + _userstoryid + '&format=json',
                 contentType: 'application/json',
                 dataType: 'json',
                 success: function(resp) {
@@ -61,48 +77,32 @@ console.log(appHostAndPath);
         });
 }
 
-        
-/*
-Load the templates                                            
-*/                                  
-        
-function loadTemplates(handleData, userstoryID) {
-console.log(appHostAndPath);
-                    $.ajax({
-                        type: 'GET',
-                        url: appHostAndPath + '/api/v1/UserStories?where=Id%20eq%20' + userstoryID + '&format=json',
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        success: function(resp) {
-                           handleData(resp); 
-            		}
-			   
-                    });
-	}      
+   
         
 /*
 Apply the template to the userstory
 */
-function applyTemplate(id, templatename, template){
+function applyTemplate(templatename, templatedetails){
     var conf = confirm("Are you sure you want to apply the template " + templatename);
 
     if(conf == true){
                      
 		getProjectID(function(output){
-                	
-                   	console.log(template);
+                	console.log('apply details');
+                   	console.log(templatedetails);
   		
 		      	
       			
-        		$.each(template.Items, function(k,item) {
-                                                                 
+        		$.each(templatedetails.Items, function(k, item) {
+                                console.log('building item to post');
+                                console.log(item);                                
                                                                  
 			        var postdata = {};
                                 postdata.Name = item.Name;
 			        postdata.Project = {'Id' : output.Items[0].Project.Id};
-              			postdata.UserStory = { 'Id' : id }
+              			postdata.UserStory = { 'Id' : _userstoryid }
                 		postdata.Description  = item.Description;
-                                
+                  		console.log(postdata);              
                   
                 		if(item.Type == 'TestCases'){
 	                                postdata.Steps = item.Steps;
@@ -110,6 +110,7 @@ function applyTemplate(id, templatename, template){
                                 }
                         	
                 		$.ajax({ 
+                                        async: false,
                                 	type: 'POST', 
                                   	url: appHostAndPath + '/api/v1/' + item.Type + '/&format=json', 
                                   	dataType: 'json',
@@ -123,8 +124,10 @@ function applyTemplate(id, templatename, template){
        					error: function(){console.log("boo!");}
     					
                                       }); 
-                        });    
-            	}, id);
+                        }); 
+                         //until I figure out how to reload the other tabs...
+               location.reload();
+            	});
                
             	
     }
@@ -134,53 +137,47 @@ function applyTemplate(id, templatename, template){
 /*
 Load the template (ie tasks and testcases)
 */
-function getTemplate(id, name, template){
+function getTemplate(templatename){
+                console.log('the id');
+                console.log(_userstoryid);            
+		var templatedetails = {
+                                       'Items' : []
+                                       };
+  		
+    		
+
+             	$.ajax({
+                type: 'GET',
+                url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + templatename,
+                contentType: 'application/json; charset=utf8',
+				success: function(data) {
+                                       
+                                        $.each(data.userData, function(k,item) {
+						
+                                               
+              					
+						
+                      				var itemarray = eval(item);
+                        			
+						
+                        			templatedetails.Items.push({'Type'  : itemarray[0],
+                                                                      'Name'        : k,
+                                                                      'Description' : itemarray[1],
+                                  				      'Steps'       : itemarray[2],
+                                      				      'Success'     : itemarray[3]
+                                                                      });
+                      
+                      		
+				        });
+                                  
+                                  console.log('templatedetials');
+				  console.log(templatedetails);                    
+                    
+  				applyTemplate(templatename, templatedetails);       
+				}
+            });
                             
-  console.log('get the actual template');
-                            
-   	var templates = {'template' : {}};
-  	templates.template["atemplate"] = {
-                                        'Items'         : []
-				       };
-    	
-    	templates.template["atemplate"].Items.push({
-                                            'Type'    : 'Tasks',
-                                            'Name'    : 'aTask1',
-          				    'Description' : 'the first task'
-              				    
-                                         });
-                    
-                    
-    	templates.template["atemplate"].Items.push({
-                                            'Type'    : 'Tasks',
-                                            'Name'    : 'aTask2',
-          				    'Description' : 'the second task'
-              				    
-                                         });
-    	templates.template["atemplate"].Items.push({
-                                            'Type'    : 'Tasks',
-                                            'Name'    : 'aTask3',
-          				    'Description' : 'the third task'
-              				   
-                                         });
-                    
-                    
-                    
-    	templates.template["atemplate"].Items.push({
-                                            'Type'    : 'TestCases',
-                                            'Name'    : 'aTestCase1',
-          				    'Steps'   : 'Steps',
-              				    'Success' : 'Sucess'
-                                         });            
-     	templates.template["atemplate"].Items.push({
-                                            'Type'    : 'TestCases',
-                                            'Name'    : 'aTestCase2',
-          				    'Steps'   : 'Steps',
-              				    'Success' : 'Sucess'
-                                         });
-                    
-                    
-  applyTemplate(id, name, templates.template["atemplate"].Items);
+	
   
 }
 
@@ -239,18 +236,19 @@ function buildTemplateTable(){
              	$.ajax({
                 type: 'GET',
                 url: appHostAndPath+'/storage/v1/ApplyTemplateMashup',
+                async: false,
                 contentType: 'application/json; charset=utf8',
 				success: function(data) {
                                         console.log(data);                 
                                         $.each(data.items, function(k,item) {
-                				var tr = $('<tr class="hoverHi"></tr>');
-				                tr.append($('<td class="more" width = 75><a href = "#">Apply</a></td>').click(function() {
-          	      					getTemplate(id, item.key);
+                				var tr = $('<tr></tr>');
+				                tr.append($('<td width = 75><a href = "#">Apply</a></td>').click(function() {
+          	      					getTemplate(item.key);
                                                 }));
-                          			tr.append($('<td class="more" width = 75><a href = "#">Delete</a></td>').click(function() {
+                          			tr.append($('<td width = 75><a href = "#">Delete</a></td>').click(function() {
           	      					removeTemplate(item.key);
                                                 }));
-                            			tr.append($('<td class="more" width = 75><a href = "#">Modify</a></td>').click(function() {
+                            			tr.append($('<td width = 75><a href = "#">Modify</a></td>').click(function() {
           	      					modifyTemplate(item.key);
                                                 }));
               				tr.append("<td>" + item.key + "</td>");
@@ -271,9 +269,12 @@ function buildTemplateTable(){
 
 
 function buildTemplateDetails(templatename){
-    
+    	$('#templateModifyTitleDiv').html(templatename);
+	
+  	 
+
         var table = $('<table class="" width= 500></table>');
-        table.append($('<tr><th colspan = 2; width= 400>Template</th></tr>'));
+        table.append($('<tr><th colspan = 2; width= 400>Tasks</th></tr>'));
                   
           
              	$.ajax({
@@ -281,28 +282,35 @@ function buildTemplateDetails(templatename){
                 url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + templatename,
                 contentType: 'application/json; charset=utf8',
 				success: function(data) {
+                                        console.log('template data');
                                         console.log(data);
                       
                       
-                      			/*
-                      
-                                        $.each(data.items, function(k,item) {
-                				var tr = $('<tr class="hoverHi"></tr>');
+                      				
+
+                                        $.each(data.userData, function(k,item) {
+                                                                                
+                				var tr = $('<tr></tr>');
                           			tr.append($('<td class="more" width = 75><a href = "#">Delete</a></td>').click(function() {
-          	      					console.log(hi);	
+          	      					console.log(item);	
                                                 }));
                             		
-              				tr.append("<td>" + item.key + "</td>");
+              				tr.append("<td>" + k + "</td>");
+	                                tr.append("<td>" + item + "</td>");
              			 	table.append(tr);
 				        });
-                                  */	
-                                        
+                                  
+                                         
 				}
             });
-              
-     
-	//$("#templateModifyContents").html('');
-	//$("#templateModifyContents").append(table);                        
+            
+            console.log('table data');
+            console.log(table);  
+
+        
+        
+	$("#templateModifyContents").html('');
+	$("#templateModifyContents").append(table);                        
                                        
 }
                          
@@ -326,12 +334,10 @@ var startApplyTemplate = function(eventdata) {
                                               
                                        
 	var id = eventdata.data.context.entity.id;
-                   
-       
-   
-        console.log(eventdata);    
-	
-	$element = eventdata.element;
+    	
+	_userstoryid = id;
+      
+		$element = eventdata.element;
 		$element.find('#modTemplateDone').click(function(){
                                 console.log('done');
   				$('#templateAddNewDiv').show();
@@ -340,21 +346,76 @@ var startApplyTemplate = function(eventdata) {
                        		return false;                        
                         });
                 	
-                $element.find('#modTemplateSave').click(function(){
-                        	console.log('save');
-                       		return false;
-                        });
+               
 
 		
-		$element.find('#showAddTask').click(function(){
+		 $element.find('#showAddTask').click(function(){
                         	
                                 console.log('show add task');
+                  		$element.find('#templateModifyContents').hide();
                 		$element.find('#templateAddTask').show();
                 
                        		return false;
                         }); 
-
-		addTemplateTable($element);  
+                  
+                 $element.find('#doCancelTask').click(function(){
+                        	
+                                $element.find('#newTaskDescription').val('');
+                            	$element.find('#newTaskName').val('')
+                		$element.find('#templateAddTask').hide();
+                      		$element.find('#templateModifyContents').show();
+                
+                       		return false;
+                        }); 
+                  
+                  
+                  
+                 $element.find('#doSaveTask').click(function(){
+               
+               		console.log('lets save some tasks');  
+                  
+                  	console.log($('#templateModifyTitleDiv').html());
+                    	
+                    	
+                        
+        		//var savedata = { };                
+  			var savedata = {  };
+                        savedata[$('#newTaskName').val()] = '["Tasks", "' + $('#newTaskDescription').val() + '"]';
+    	
+    			
+                    
+    	
+                      	
+         		//savedata = JSON.stringify(savedata);
+            		console.log(savedata);
+        			$.ajax({
+                    			type: 'POST',
+		                        async: false,
+                    			url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
+		                        data: JSON.stringify({
+                        		'scope'     : 'Private',
+                        		'publicData': null,
+                        		'userData'  : savedata
+                    		}),
+                    		contentType: 'application/json; charset=utf8',
+		                success: function(){
+                                        console.log("yay!");
+                            		buildTemplateDetails($('#templateModifyTitleDiv').html());
+                          		$element.find('#newTaskDescription').val('');
+                            		$element.find('#newTaskName').val('');
+                        		
+                      		}, 
+       		    		error: function(){
+                                        console.log("boo!");}
+                		});
+        
+        		$element.find('#templateAddTask').hide();
+          		$element.find('#templateModifyContents').show();
+	        	return false;
+        	});  
+                  
+                  
+		
           
 		$element.find('#templateAddNewButton').click(function( event ){ 
 		       	$element.find('#templateAddNewButton').hide();
@@ -398,9 +459,78 @@ var startApplyTemplate = function(eventdata) {
 			
         	
             		return false;
+        		});
+ 
+                  	/*
+                    		This section is for the test cases
+                    	*/
+                  
+              		$element.find('#showAddTestCase').click(function(){
+                        	
+                                
+                  		$element.find('#templateModifyContents').hide();
+                		$element.find('#templateAddTestCase').show();
+                
+                       		return false;
+                        }); 
+                  
+                 	$element.find('#doCancelTestCase').click(function(){
+                        	
+                                $element.find('#newTestCaseDescription').val('');
+                            	$element.find('#newTestCaseName').val('')
+                		$element.find('#templateAddTestCase').hide();
+                      		$element.find('#templateModifyContents').show();
+                
+                       		return false;
+                        });
+                
+                
+                        $element.find('#doSaveTestCase').click(function(){
+               
+               		console.log('lets save some testcases');  
+                  
+                  	console.log($('#templateModifyTitleDiv').html());
+                    	
+                    	
+                        
+        		//var savedata = { };                
+  			var savedata = {  };
+                        savedata[$('#newTestCaseName').val()] = '["TestCases", "","' + $('#newTestCaseSteps').val() + '","' + $('#newTestCaseSuccess').val()+'"]';
+    	
+    			
+                    
+    	
+                      	
+         		//savedata = JSON.stringify(savedata);
+            		console.log(savedata);
+        			$.ajax({
+                    			type: 'POST',
+		                        async: false,
+                    			url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
+		                        data: JSON.stringify({
+                        		'scope'     : 'Private',
+                        		'publicData': null,
+                        		'userData'  : savedata
+                    		}),
+                    		contentType: 'application/json; charset=utf8',
+		                success: function(){
+                                        console.log("yay!");
+                            		buildTemplateDetails($('#templateModifyTitleDiv').html());
+                          		$element.find('#newTestCaseSteps').val('');
+                            		$element.find('#newTestCaseSuccess').val('');
+                              		$element.find('#newTestCaseName').val('');
+                        		
+                      		}, 
+       		    		error: function(){
+                                        console.log("boo!");}
+                		});
+        
+        		$element.find('#templateAddTestCase').hide();
+          		$element.find('#templateModifyContents').show();
+	        	return false;
         	});
 	
-        
+        	addTemplateTable($element);  
 	
                                                   
 };
