@@ -1,9 +1,39 @@
+
+*
+Setup the placeholders we will need.
+*/
 var renderContent = function ($contentElement, context) {
     //$contentElement is jquery content element for my red control and context contains entity type and entity id
-    $contentElement.append('<button id="templateAddNewButton">Add New Template</button><div id="templateAddNewDiv" style="display: none;"><input type = "text" id = "newTemplateName"><BR></div><div id="templateApplyTemplateDiv"><div id="templateTableDiv"></div></div>');
+	var html = '';
+  	html += '<div id="templateAddNewDiv">';
+    	html += '<div id ="templateInputDiv" style="display: none;">';
+	html += '<input type = "text" id = "newTemplateName"><BR><button id="doadd">Add!</button><button id="dohide">Hide</button></div>';
+        html += '<button id="templateAddNewButton">Add New Template</button></div>';
+	html += '<div id="templatesDiv"><div id="templateTableDiv"></div></div>';
+	html += '<div id="templateModifyDiv" style="display: none;">';
+	html += '<div id="templateModifyTableDiv">';
+        html += '<button id = "showAddTask">Add Task</button>';
+        
+        html += '<div id="templateAddTask" style="display: none;">Add task<br>';
+        html += '<input type = "text" id = "newTaskName"><BR>';
+        html += '<input type = "text" id = "newTaskDescription"><BR>';
+        html += '<button id="doSaveTask">Save</button>';
+        html += '</div>';
+        
+        
+        html += '<div id="templateAddTestCase" style="display: none;">Add test case???</div>';
+        
+        html += '<div id "templateModifyContents">';
+        html += '</div>';
+        
+	html += '</div>';
+        html += '<button id = "modTemplateDone">Done</button>';
+        html += '</div>';
+
+        $contentElement.append(html);
+        
 };
 
-//Append my controls to user story view
 tau.mashups.addDependency('tp/userStory/view')
     .addMashup(function (view) {
         view.addTab('Template', renderContent)
@@ -50,7 +80,9 @@ console.log(appHostAndPath);
                     });
 	}      
         
-        
+/*
+Apply the template to the userstory
+*/
 function applyTemplate(id, templatename, template){
     var conf = confirm("Are you sure you want to apply the template " + templatename);
 
@@ -99,7 +131,9 @@ function applyTemplate(id, templatename, template){
 
 }
 
-
+/*
+Load the template (ie tasks and testcases)
+*/
 function getTemplate(id, name, template){
                             
   console.log('get the actual template');
@@ -152,7 +186,9 @@ function getTemplate(id, name, template){
 
 
 
-
+/*
+Remove the template from storage
+*/
 function removeTemplate(templatename){
 
                                       
@@ -171,18 +207,25 @@ function removeTemplate(templatename){
   
 }
 
-
+/*
+This is used for the first build of the available templates.
+*/
 function addTemplateTable($element){
 	$element.find("#templateTableDiv").html('');
 	$element.find("#templateTableDiv").append(buildTemplateTable());
 }
 
-
+/*
+This can be used to refresh the table displaying the avaiable templates
+*/
 function rebuildTemplateTable(){
 	$("#templateTableDiv").html('');
 	$("#templateTableDiv").append(buildTemplateTable()); 
 }
 
+/*
+Actually build the templatetable - 
+*/
 function buildTemplateTable(){
         
 	console.log($element.length);
@@ -218,30 +261,70 @@ function buildTemplateTable(){
             });
               
      
-		  return table;                            
+	return table;                            
                                        
 }
-                             
+
+
+
+
+
+
+function buildTemplateDetails(templatename){
+    
+        var table = $('<table class="" width= 500></table>');
+        table.append($('<tr><th colspan = 2; width= 400>Template</th></tr>'));
+                  
+          
+             	$.ajax({
+                type: 'GET',
+                url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + templatename,
+                contentType: 'application/json; charset=utf8',
+				success: function(data) {
+                                        console.log(data);
+                      
+                      
+                      			/*
+                      
+                                        $.each(data.items, function(k,item) {
+                				var tr = $('<tr class="hoverHi"></tr>');
+                          			tr.append($('<td class="more" width = 75><a href = "#">Delete</a></td>').click(function() {
+          	      					console.log(hi);	
+                                                }));
+                            		
+              				tr.append("<td>" + item.key + "</td>");
+             			 	table.append(tr);
+				        });
+                                  */	
+                                        
+				}
+            });
+              
+     
+	//$("#templateModifyContents").html('');
+	//$("#templateModifyContents").append(table);                        
+                                       
+}
                          
 function modifyTemplate(templatename){
 
-                                      
-                                      
+  $('#templateAddNewDiv').hide();
+  $('#templatesDiv').hide(); 
+  $('#templateModifyDiv').show(); 
+  buildTemplateDetails(templatename);
+  
   console.log('modify template ' + templatename);
 
 }
 
 
 
-
+/*
+Apply the actions and put information in the place holders.
+*/
 var startApplyTemplate = function(eventdata) {
                                               
-                                              
-                                              
-    
-          
-            
-                                                   
+                                       
 	var id = eventdata.data.context.entity.id;
                    
        
@@ -249,40 +332,70 @@ var startApplyTemplate = function(eventdata) {
         console.log(eventdata);    
 	
 	$element = eventdata.element;
-	
-        
+		$element.find('#modTemplateDone').click(function(){
+                                console.log('done');
+  				$('#templateAddNewDiv').show();
+  				$('#templatesDiv').show();
+            			$('#templateModifyDiv').hide(); 
+                       		return false;                        
+                        });
+                	
+                $element.find('#modTemplateSave').click(function(){
+                        	console.log('save');
+                       		return false;
+                        });
+
+		
+		$element.find('#showAddTask').click(function(){
+                        	
+                                console.log('show add task');
+                		$element.find('#templateAddTask').show();
+                
+                       		return false;
+                        }); 
 
 		addTemplateTable($element);  
           
 		$element.find('#templateAddNewButton').click(function( event ){ 
 		       	$element.find('#templateAddNewButton').hide();
-        	        $element.find("#templateAddNewDiv").show();
-	                var myitem;
-                        myitem = $('<button id="doadd">Add!</button>').click(function(){
-			
-                        
-                $.ajax({
-                    type: 'POST',
-                    async: false,
-                    url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + $('#newTemplateName').val(),
-                    data: JSON.stringify({
-                        'scope'     : 'Private',
-                        'publicData': null,
-                        'userData'  : ''
-                    }),
-                    contentType: 'application/json; charset=utf8',
-                    success: function(){
+        	        $element.find("#templateInputDiv").show();
+	               
+                        $('#doadd').click(function(){
+                		if($('#newTemplateName').val() == ''){
+                                return false;
+                                }
+                		$.ajax({
+                    			type: 'POST',
+		                        async: false,
+                    			url: appHostAndPath+'/storage/v1/ApplyTemplateMashup/' + $('#newTemplateName').val(),
+		                        data: JSON.stringify({
+                        		'scope'     : 'Private',
+                        		'publicData': null,
+                        		'userData'  : ''
+                    		}),
+                    		contentType: 'application/json; charset=utf8',
+		                success: function(){
                                         console.log("yay!");
+                        		$('#newTemplateName').val('')
                                         rebuildTemplateTable();
-                      			
-                                        }, 
-       		    error: function(){console.log("boo!");}
-                });
+                      		}, 
+       		    		error: function(){
+                                        console.log("boo!");}
+                		});
 			                                                                     
-			return false;
+				return false;
 			});
-                
-		$element.find("#templateAddNewDiv").append(myitem);
+                	
+                        $('#dohide').click(function(){
+                        
+                        	$element.find('#templateAddNewButton').show();
+	        	        $element.find("#templateInputDiv").hide();
+                          	
+                        	return false;
+                                                                                      
+			});
+                        
+			
         	
             		return false;
         	});
