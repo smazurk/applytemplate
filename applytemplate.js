@@ -179,9 +179,9 @@ tau.mashups.addDependency('tp/userStory/view')
                       async: false,
                       url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
                       data: JSON.stringify({
-                      'scope'     : 'Private',
-                      'publicData': null,
-                      'userData'  : postdata
+                      'scope'     : 'Public',
+                      'publicData': postdata,
+                      'userData'  : null
               }),
               contentType: 'application/json; charset=utf8',
               success: function(){
@@ -287,9 +287,9 @@ tau.mashups.addDependency('tp/userStory/view')
 		                        async: false,
                     			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
 		                        data: JSON.stringify({
-                        		'scope'     : 'Private',
-                        		'publicData': null,
-                        		'userData'  : savedata
+                        		'scope'     : 'Public',
+                        		'publicData': savedate,
+                        		'userData'  : null
                     		}),
                     		contentType: 'application/json; charset=utf8',
 		                success: function(){
@@ -328,9 +328,9 @@ tau.mashups.addDependency('tp/userStory/view')
 		                        async: false,
                     			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#newTemplateName').val(),
 		                        data: JSON.stringify({
-                        		'scope'     : 'Private',
-                        		'publicData': null,
-                        		'userData'  : ''
+                        		'scope'     : 'Public',
+                        		'publicData': '',
+                        		'userData'  : null
                     		}),
                     		contentType: 'application/json; charset=utf8',
 		                success: function(){
@@ -366,7 +366,6 @@ tau.mashups.addDependency('tp/userStory/view')
                   
               		$element.find('#showAddTestCase').click(function(){
                         	
-                                
                   		$element.find('#templateModifyContents').hide();
                       		$element.find('.additemheaderfooter').hide();
                 		$element.find('#templateAddTestCase').show();
@@ -375,7 +374,7 @@ tau.mashups.addDependency('tp/userStory/view')
                         }); 
                   
                  	$element.find('#doCancelTestCase').click(function(){
-                        	
+                        	//clear the test cases
                                 $element.find('#newTestCaseSteps').val('');
                                 $element.find('#newTestCaseSuccess').val('');
 	                        $element.find('#newTestCaseName').val('')
@@ -401,9 +400,9 @@ tau.mashups.addDependency('tp/userStory/view')
 		                        async: false,
                     			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
 		                        data: JSON.stringify({
-                        		'scope'     : 'Private',
-                        		'publicData': null,
-                        		'userData'  : savedata
+                        		'scope'     : 'Public',
+                        		'publicData': savedata,
+                        		'userData'  : null
                     		}),
                     		contentType: 'application/json; charset=utf8',
 		                success: function(){
