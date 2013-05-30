@@ -223,8 +223,8 @@ tau.mashups.addDependency('tp/userStory/view')
         
         startApplyTemplate = function(eventdata){
         
-    		var id = eventdata.data.context.entity.id;
-    		
+    		//var id = eventdata.data.context.entity.id;
+    		var id = 100;
 		this._userstoryid = id;
         	
         	$element = eventdata.element;
