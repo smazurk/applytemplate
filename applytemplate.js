@@ -69,11 +69,13 @@ tau.mashups.addDependency('tp/userStory/view')
 		//TODO: Need to use a better event, or do something when this is not the default tab
           		bus.on('afterRenderAll', function (evt, data) {
                        
-                        console.log(evt.caller.name);
+                        
             		
           			if(evt.caller.name == "container"){
-                                        
-		                    startApplyTemplate(data);
+                               	 if (typeof data.data.context.entity !== 'undefined'){	
+		               
+                    			startApplyTemplate(data);
+                		 }
             			}
             
             		});             
@@ -122,7 +124,7 @@ tau.mashups.addDependency('tp/userStory/view')
                       
                       
                       			
-                                        $.each(data.userData, function(k,item) {
+                                        $.each(data.publicData, function(k,item) {
                                                 
                                                 var itemarray = eval(item);
                               			var tr = $('<tr></tr>');
@@ -223,8 +225,7 @@ tau.mashups.addDependency('tp/userStory/view')
         
         startApplyTemplate = function(eventdata){
         
-    		//var id = eventdata.data.context.entity.id;
-    		var id = 100;
+    		var id = eventdata.data.context.entity.id;
 		this._userstoryid = id;
         	
         	$element = eventdata.element;
@@ -288,7 +289,7 @@ tau.mashups.addDependency('tp/userStory/view')
                     			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
 		                        data: JSON.stringify({
                         		'scope'     : 'Public',
-                        		'publicData': savedate,
+                        		'publicData': savedata,
                         		'userData'  : null
                     		}),
                     		contentType: 'application/json; charset=utf8',
