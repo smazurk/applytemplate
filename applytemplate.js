@@ -40,6 +40,9 @@ var renderContent = function ($contentElement, context) {
         html += '</div>';
 	html += '<div id="addtemplate"><button id="templateAddNewButton">Add New Template</button></div>';
         $contentElement.append(html);
+       
+        console.log(context);
+        
         
 }
 
@@ -64,10 +67,24 @@ tau.mashups.addDependency('tp/userStory/view')
           this._userstoryid = 0;
           $deferred.then(function (bus) { 
 		//TODO: Need to use a better event, or do something when this is not the default tab
-                      bus.on('afterRenderAll', function (evt, data) {
-                          //console.log(evt.caller.name);
-  
-                          	
+          		bus.on('afterRenderAll', function (evt, data) {
+                       
+                        console.log(evt.caller.name);
+            		
+          		if(evt.caller.name == "container"){
+                                        console.log("aa");
+                                        console.log(evt);
+            				console.log(data);
+            				console.log("bb");
+            		                                                  }
+            
+        	        if (evt.caller.name.indexOf("entity container") !== -1 ) { 
+  	                       startApplyTemplate(data);
+                               return; 
+                	} 
+            		});             
+          
+          		/*bus.on('afterRenderAll', function (evt, data) {
                          if (typeof evt.data.data !== 'undefined'){
                           
           		  if(evt.data.data.name.indexOf("main entity container") !== -1){
@@ -80,7 +97,7 @@ tau.mashups.addDependency('tp/userStory/view')
                  
                   return;      
                   
-                  }); 
+             	     	});*/ 
           })
         
 	};        
@@ -213,8 +230,8 @@ tau.mashups.addDependency('tp/userStory/view')
         
         startApplyTemplate = function(eventdata){
         
-    		var id = eventdata.data.context.entity.id;
-    	
+    		//var id = eventdata.data.context.entity.id;
+    		var id = 100;
 		this._userstoryid = id;
         	
         	$element = eventdata.element;
