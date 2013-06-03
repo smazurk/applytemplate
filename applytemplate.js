@@ -99,7 +99,7 @@ tau.mashups.addDependency('tp/userStory/view')
 
         
         function buildTemplateDetails(templatename){
-                                                    
+        templatename = fixInput(templatename);                                            
         console.log('building the templates details');
     	$('#templateModifyTitleDiv').html(templatename);
 	
@@ -275,7 +275,7 @@ tau.mashups.addDependency('tp/userStory/view')
                         
         		//var savedata = { };                
   			var savedata = {  };
-                        savedata[$('#newTaskName').val()] = '["Tasks", "' + $('#newTaskDescription').val() + '"]';
+                        savedata[fixInput($('#newTaskName').val())] = '["Tasks", "' + fixInput($('#newTaskDescription').val()) + '"]';
     	
     			
                     
@@ -286,7 +286,7 @@ tau.mashups.addDependency('tp/userStory/view')
         			$.ajax({
                     			type: 'POST',
 		                        async: false,
-                    			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
+                    			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + fixInput($('#templateModifyTitleDiv').html()),
 		                        data: JSON.stringify({
                         		'scope'     : 'Public',
                         		'publicData': savedata,
@@ -327,7 +327,7 @@ tau.mashups.addDependency('tp/userStory/view')
                 		$.ajax({
                     			type: 'POST',
 		                        async: false,
-                    			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#newTemplateName').val(),
+                    			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + fixInput($('#newTemplateName').val()),
 		                        data: JSON.stringify({
                         		'scope'     : 'Public',
                         		'publicData': '',
@@ -393,13 +393,13 @@ tau.mashups.addDependency('tp/userStory/view')
                   	console.log($('#templateModifyTitleDiv').html());
                     	
   			var savedata = {  };
-                        savedata[$('#newTestCaseName').val()] = '["TestCases", "","' + $('#newTestCaseSteps').val() + '","' + $('#newTestCaseSuccess').val()+'"]';
+                        savedata[fixInput($('#newTestCaseName').val())] = '["TestCases", "","' + fixInput($('#newTestCaseSteps').val()) + '","' + fixInput($('#newTestCaseSuccess').val()) +'"]';
    
             		console.log(savedata);
         			$.ajax({
                     			type: 'POST',
 		                        async: false,
-                    			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + $('#templateModifyTitleDiv').html(),
+                    			url: configurator.getApplicationPath()+'/storage/v1/ApplyTemplateMashup/' + fixInput($('#templateModifyTitleDiv').html()),
 		                        data: JSON.stringify({
                         		'scope'     : 'Public',
                         		'publicData': savedata,
@@ -429,6 +429,21 @@ tau.mashups.addDependency('tp/userStory/view')
         };
         
        
+        /*
+        fix the input from the text boxes
+        */
+        function fixInput(s){
+
+          	s = s.replace(/"/gm, '"');
+                s = s.replace(/>/gm, '>');
+                s = s.replace(/</gm, '<');
+                //s = s.replace(/'/gm, ''');
+            	s = s.replace(/(\r\n|\n|\r)/gm, '\n');
+        	s = s.replace(/(\r\n|\n|\r)/gm, '<br />');
+       		return s;
+	}
+        
+        
         
         /*
         This is used for the first build of the available templates.
@@ -590,7 +605,7 @@ tau.mashups.addDependency('tp/userStory/view')
                 contentType: 'application/json; charset=utf8',
 				success: function(data) {
                                        
-                                        $.each(data.userData, function(k,item) {
+                                        $.each(data.publicData, function(k,item) {
 						
                                                
               					
@@ -628,7 +643,7 @@ tau.mashups.addDependency('tp/userStory/view')
         
                                               
                                               
-          console.log('remove template' + templatename);
+          //console.log('remove template' + templatename);
                 
                 $.ajax({
                             type: 'DELETE',
